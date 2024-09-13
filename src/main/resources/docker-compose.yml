@@ -1,0 +1,24 @@
+# Use root/example as user/password credentials
+version: '3.8'
+services:
+
+  mariadb:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3326:3306" # Mapping du port 3310 de l'hôte au port 3306 du conteneur
+
+  adminer:
+    container_name: adminer-4.8.1-standalone
+    image: adminer:4.8.1-standalone
+    restart: always
+    ports:
+      - 9080:8080
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    restart: always
+    ports:
+      - 9081:80   # Port pour l'interface web de smtp4dev
+      - 9025:25   # Port pour le serveur SMTP
