@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
         final String authorization = request.getHeader("Authorization");
         if (authorization!=null && authorization.startsWith("Bearer")){
             token  = authorization.substring(7);
-            tokenDansLaBDD = this.jwtService.tokenByValeur(token);
+            tokenDansLaBDD = this.jwtService.tokenByValue(token);
             jwtService.isTokenExpired(token);
             isTokenExpired = jwtService.isTokenExpired(token);
             username = jwtService.extractUsername(token);
