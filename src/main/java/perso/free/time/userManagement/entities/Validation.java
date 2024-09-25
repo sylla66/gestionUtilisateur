@@ -2,13 +2,17 @@ package perso.free.time.userManagement.entities;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "validation")
 public class Validation {
@@ -20,8 +24,7 @@ public class Validation {
     private Instant expire;
     private Instant activation;
     private String code;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "utilisateur_id")
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.DETACH})
     private Utilisateur utilisateur;
 }
 

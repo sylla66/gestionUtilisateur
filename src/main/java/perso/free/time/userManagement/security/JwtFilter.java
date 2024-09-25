@@ -19,7 +19,6 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private UtilisateurService utilisateurService;
-    Jwt tokenDansLaBDD;
     private JwtService jwtService;
 
     public JwtFilter(UtilisateurService utilisateurService, JwtService jwtService) {
@@ -29,28 +28,30 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
-        String token = null;
+        String token;
+        Jwt tokenDansLaBDD = null;
         String username = null;
         boolean isTokenExpired = true;
+
+        // Bearer eyJhbGciOiJIUzI1NiJ9.eyJub20iOiJBY2hpbGxlIE1CT1VHVUVORyIsImVtYWlsIjoiYWNoaWxsZS5tYm91Z3VlbmdAY2hpbGxvLnRlY2gifQ.zDuRKmkonHdUez-CLWKIk5Jdq9vFSUgxtgdU1H2216U
         final String authorization = request.getHeader("Authorization");
-        if (authorization!=null && authorization.startsWith("Bearer")){
-            token  = authorization.substring(7);
+        if(authorization != null && authorization.startsWith("Bearer ")){
+            token = authorization.substring(7);
             tokenDansLaBDD = this.jwtService.tokenByValue(token);
-            jwtService.isTokenExpired(token);
             isTokenExpired = jwtService.isTokenExpired(token);
             username = jwtService.extractUsername(token);
         }
-        if(!isTokenExpired
-                && tokenDansLaBDD.getUtilisateur().getEmail().equals(username)
-                && SecurityContextHolder.getContext().getAuthentication()==null){
-            UserDetails userDetails =  utilisateurService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken authenticationToken  = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities() );
+
+        if(
+                !isTokenExpired
+                        && tokenDansLaBDD.getUtilisateur().getEmail().equals(username)
+                        && SecurityContextHolder.getContext().getAuthentication() == null
+        ) {
+            UserDetails userDetails = utilisateurService.loadUserByUsername(username);
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
         }
+
         filterChain.doFilter(request, response);
-
-
     }
 }

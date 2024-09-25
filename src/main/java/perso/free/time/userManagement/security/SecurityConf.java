@@ -40,7 +40,9 @@ public class SecurityConf {
                                                 .requestMatchers(POST,"/inscription").permitAll()
                                                 .requestMatchers(POST,"/activation").permitAll()
                                                 .requestMatchers(POST,"/connexion").permitAll()
-                                                .requestMatchers(POST,"/deconnexion").permitAll()
+                                                .requestMatchers(POST,"/refresh-token").permitAll()
+                                                .requestMatchers(POST,"/modifier-mot-de-passe").permitAll()
+                                                .requestMatchers(POST,"/nouveau-mot-de-passe").permitAll()
                                                 .anyRequest().authenticated()
                         ).sessionManagement(httpSecuritySessionManagementConfigurer ->
                                 httpSecuritySessionManagementConfigurer.sessionCreationPolicy

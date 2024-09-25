@@ -51,6 +51,7 @@ public class JwtService {
     public Map<String, String> generate(String username) {
         Utilisateur utilisateur = (Utilisateur) this.utilisateurService.loadUserByUsername(username);
         this.disableTokens(utilisateur);
+
         final Map<String, String> jwtMap = new java.util.HashMap<>(this.generateJwt(utilisateur));
 
         RefreshToken refreshToken = RefreshToken.builder()
@@ -95,6 +96,7 @@ public class JwtService {
     }
 
     private Date getExpirationDateFromToken(String token) {
+
         return this.getClaim(token, Claims::getExpiration);
     }
 
@@ -113,7 +115,7 @@ public class JwtService {
 
     private Map<String, String> generateJwt(Utilisateur utilisateur) {
         final long currentTime = System.currentTimeMillis();
-        final long expirationTime = currentTime + 60 * 1000;
+        final long expirationTime = currentTime + 60*60*1000;
 
         final Map<String, Object> claims = Map.of(
                 "nom", utilisateur.getNom(),
@@ -138,13 +140,10 @@ public class JwtService {
 
     public void deconnexion() {
         Utilisateur utilisateur = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Jwt jwt = this.jwtRepository.findUtilisateurValidToken(
-                utilisateur.getEmail(),
-                false,
-                false
-        ).orElseThrow(() -> new RuntimeException(TOKEN_INVALIDE));
-        jwt.setExpire(true);
-        jwt.setDesactive(true);
+        final Jwt jwt =Jwt.builder()
+                .desactive(false)
+                .expire(false)
+                .utilisateur(utilisateur).build();
         this.jwtRepository.save(jwt);
     }
 

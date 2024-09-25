@@ -24,21 +24,13 @@ public class Utilisateur implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String mdp;
-
-    @Column(name = "nom", nullable = false)
     private String nom;
-
     @Column(name = "email", nullable = false, unique = true)
     private String email;
-
-    @Column(name = "actif")
     private boolean actif = false;
-
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "role_id")  // Assurez-vous que le nom de colonne est correct
     private Role role;
 
 

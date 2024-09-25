@@ -7,11 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import perso.free.time.userManagement.dto.AuthentificationDto;
+import org.springframework.web.bind.annotation.*;
+import perso.free.time.userManagement.dto.AuthentificationDTO;
 import perso.free.time.userManagement.entities.Utilisateur;
 import perso.free.time.userManagement.security.JwtService;
 import perso.free.time.userManagement.service.UtilisateurService;
@@ -25,41 +22,51 @@ import java.util.Map;
 @RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 public class UtilisateurController {
 
-    private UtilisateurService utilisateurService;
+
     private AuthenticationManager authenticationManager;
+    private UtilisateurService utilisateurService;
     private JwtService jwtService;
 
-
-
     @PostMapping(path = "inscription")
-    public void inscription(@RequestBody Utilisateur utilisateur){
-        this.utilisateurService.inscription(utilisateur);
+    public void inscription(@RequestBody Utilisateur utilisateur) {
         log.info("Inscription");
-
+        this.utilisateurService.inscription(utilisateur);
     }
 
     @PostMapping(path = "activation")
-    public void activation(@RequestBody Map<String, String>  activation){
+    public void activation(@RequestBody Map<String, String> activation) {
         this.utilisateurService.activation(activation);
-        log.info("Activation");
+    }
+    @PostMapping(path = "modifier-mot-de-passe")
+    public void modifierMotDePasse(@RequestBody Map<String, String> activation) {
+        this.utilisateurService.modifierMotDePasse(activation);
+    }
+
+    @PostMapping(path = "nouveau-mot-de-passe")
+    public void nouveauMotDePasse(@RequestBody Map<String, String> activation) {
+        this.utilisateurService.nouveauMotDePasse(activation);
+    }
+
+
+
+    @PostMapping(path = "refresh-token")
+    public @ResponseBody Map<String, String> refreshToken(@RequestBody Map<String, String> refreshTokenRequest) {
+        return this.jwtService.refreshToken(refreshTokenRequest);
     }
 
     @PostMapping(path = "deconnexion")
-    public void deconnexion(){
+    public void deconnexion() {
         this.jwtService.deconnexion();
-        log.info("Activation");
     }
     @PostMapping(path = "connexion")
-    public Map<String, String> connexion(@RequestBody AuthentificationDto authentificationDto){
-        log.info("Connexion");
+    public Map<String, String> connexion(@RequestBody AuthentificationDTO authentificationDTO) {
         final Authentication authenticate = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authentificationDto.username(), authentificationDto.password())
+                new UsernamePasswordAuthenticationToken(authentificationDTO.username(), authentificationDTO.password())
         );
-        if (authenticate.isAuthenticated()){
-            log.info("resultat {}", authenticate.isAuthenticated());
-            return this.jwtService.generate(authentificationDto.username());
-        }
 
+        if(authenticate.isAuthenticated()) {
+            return this.jwtService.generate(authentificationDTO.username());
+        }
         return null;
     }
 }

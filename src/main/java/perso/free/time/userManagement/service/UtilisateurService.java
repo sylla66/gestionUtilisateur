@@ -16,56 +16,71 @@ import perso.free.time.userManagement.entities.Role;
 import perso.free.time.userManagement.entities.Utilisateur;
 import perso.free.time.userManagement.entities.Validation;
 import perso.free.time.userManagement.repository.UtilisateurRopository;
+import perso.free.time.userManagement.repository.ValidationRepository;
 
 
 @AllArgsConstructor
 @Service
 public class UtilisateurService  implements UserDetailsService {
 
-    private UtilisateurRopository utilisateurRopository;
+    private UtilisateurRopository utilisateurRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private ValidationService validationService;
-    public  void inscription(Utilisateur utilisateur){
-        this.validateEmail(utilisateur.getEmail());
-        Optional<Utilisateur> utilisateurOptional = this.utilisateurRopository.findByEmail(utilisateur.getEmail());
-        if(utilisateurOptional.isPresent()){
-            throw new RuntimeException("votre mail est déja utilisé");
+    private ValidationRepository validationRepository;
+    public void inscription(Utilisateur utilisateur) {
+
+        if(!utilisateur.getEmail().contains("@")) {
+            throw  new RuntimeException("Votre mail invalide");
+        }
+        if(!utilisateur.getEmail().contains(".")) {
+            throw  new RuntimeException("Votre mail invalide");
+        }
+
+        Optional<Utilisateur> utilisateurOptional = this.utilisateurRepository.findByEmail(utilisateur.getEmail());
+        if(utilisateurOptional.isPresent()) {
+            throw  new RuntimeException("Votre mail est déjà utilisé");
         }
         String mdpCrypte = this.passwordEncoder.encode(utilisateur.getMdp());
         utilisateur.setMdp(mdpCrypte);
+
         Role roleUtilisateur = new Role();
         roleUtilisateur.setLibelle(TypeDeRole.USER);
         utilisateur.setRole(roleUtilisateur);
-        Utilisateur saveUser = this.utilisateurRopository.save(utilisateur);
-        this.validationService.enregistrerUtilisateur(saveUser);
-    }
-    public void validateEmail(String email) {
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"; // Regex basique pour les emails
-        Pattern pattern = Pattern.compile(emailRegex);
 
-        if (email == null || !pattern.matcher(email).matches()) {
-            throw new RuntimeException("Votre email est invalide");
-        }
+        utilisateur = this.utilisateurRepository.save(utilisateur);
+        this.validationService.enregistrer(utilisateur);
     }
 
     public void activation(Map<String, String> activation) {
-        Validation validation = this.validationService.lireEnfonctionDuCode(activation.get("code"));
-
-        if (Instant.now().isAfter(validation.getExpire())){
-            throw new RuntimeException("votre code a expiré");
+        Validation validation = this.validationService.lireEnFonctionDuCode(activation.get("code"));
+        if(Instant.now().isAfter(validation.getExpire())){
+            throw  new RuntimeException("Votre code a expiré");
         }
-        Utilisateur utilisateurActiver = this.utilisateurRopository.findById(validation.getUtilisateur().getId()).orElseThrow(()->new RuntimeException("Utilisateur inconnu"));
+        Utilisateur utilisateurActiver = this.utilisateurRepository.findById(validation.getUtilisateur().getId()).orElseThrow(() -> new RuntimeException("Utilisateur inconnu"));
         utilisateurActiver.setActif(true);
-        this.utilisateurRopository.save(utilisateurActiver);
-
+        validationRepository.save(validation);
+        this.utilisateurRepository.save(utilisateurActiver);
     }
 
-
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return this.utilisateurRopository
-                .findByEmail(username).orElseThrow(
-                        ()->new UsernameNotFoundException
-                                ("Aucun utilisateur ne correspond à cet identifiant"));
+    public Utilisateur loadUserByUsername(String username) throws UsernameNotFoundException {
+        return this.utilisateurRepository
+                .findByEmail(username)
+                .orElseThrow(() -> new  UsernameNotFoundException("Aucun utilisateur ne corespond à cet identifiant"));
+    }
+
+    public void modifierMotDePasse(Map<String, String> parametres) {
+        Utilisateur utilisateur = this.loadUserByUsername(parametres.get("email"));
+        this.validationService.enregistrer(utilisateur);
+    }
+
+    public void nouveauMotDePasse(Map<String, String> parametres) {
+        Utilisateur utilisateur = this.loadUserByUsername(parametres.get("email"));
+        final Validation validation = validationService.lireEnFonctionDuCode(parametres.get("code"));
+        if(validation.getUtilisateur().getEmail().equals(utilisateur.getEmail())) {
+            String mdpCrypte = this.passwordEncoder.encode(parametres.get("password"));
+            utilisateur.setMdp(mdpCrypte);
+            this.utilisateurRepository.save(utilisateur);
+        }
     }
 }
