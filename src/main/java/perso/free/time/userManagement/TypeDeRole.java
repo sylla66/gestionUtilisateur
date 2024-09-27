@@ -4,5 +4,6 @@ public enum TypeDeRole {
     USER,
     ADMIN,
     SUPPORT,
-    RESPONSABLE
+    RESPONSABLE,
+    MANAGER
 }

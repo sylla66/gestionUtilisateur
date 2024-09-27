@@ -2,13 +2,13 @@ package perso.free.time.userManagement.entities;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import perso.free.time.userManagement.TypeDeRole;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Entity
 @Table(name = "role")
@@ -17,8 +17,8 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "libelle", nullable  = false)
     @Enumerated(EnumType.STRING)
-    @Column(name = "libelle", nullable = false)
     private TypeDeRole libelle;
 
 

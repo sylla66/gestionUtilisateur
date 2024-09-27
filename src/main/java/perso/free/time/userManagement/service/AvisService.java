@@ -8,6 +8,8 @@ import perso.free.time.userManagement.entities.Avis;
 import perso.free.time.userManagement.entities.Utilisateur;
 import perso.free.time.userManagement.repository.AvisRepository;
 
+import java.util.List;
+
 @AllArgsConstructor
 @Service
 public class AvisService {
@@ -20,4 +22,7 @@ public class AvisService {
 
     }
 
+    public List<Avis> liste() {
+        return (List<Avis>) this.avisRepository.findAll();
+    }
 }

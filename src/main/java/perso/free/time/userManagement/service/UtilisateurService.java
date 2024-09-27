@@ -1,5 +1,7 @@
 package perso.free.time.userManagement.service;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -15,6 +17,7 @@ import perso.free.time.userManagement.TypeDeRole;
 import perso.free.time.userManagement.entities.Role;
 import perso.free.time.userManagement.entities.Utilisateur;
 import perso.free.time.userManagement.entities.Validation;
+import perso.free.time.userManagement.repository.RoleRepository;
 import perso.free.time.userManagement.repository.UtilisateurRopository;
 import perso.free.time.userManagement.repository.ValidationRepository;
 
@@ -27,6 +30,7 @@ public class UtilisateurService  implements UserDetailsService {
     private BCryptPasswordEncoder passwordEncoder;
     private ValidationService validationService;
     private ValidationRepository validationRepository;
+    private RoleRepository roleRepository;
     public void inscription(Utilisateur utilisateur) {
 
         if(!utilisateur.getEmail().contains("@")) {
@@ -38,14 +42,27 @@ public class UtilisateurService  implements UserDetailsService {
 
         Optional<Utilisateur> utilisateurOptional = this.utilisateurRepository.findByEmail(utilisateur.getEmail());
         if(utilisateurOptional.isPresent()) {
-            throw  new RuntimeException("Votre mail est déjà utilisé");
+            throw new RuntimeException("Votre mail est déjà utilisé");
         }
         String mdpCrypte = this.passwordEncoder.encode(utilisateur.getMdp());
         utilisateur.setMdp(mdpCrypte);
 
-        Role roleUtilisateur = new Role();
-        roleUtilisateur.setLibelle(TypeDeRole.USER);
-        utilisateur.setRole(roleUtilisateur);
+        // Vérification et création du rôle
+        if (utilisateur.getRole() != null && utilisateur.getRole().getLibelle() != null) {
+            try {
+                // Convertir directement le libellé en TypeDeRole sans toUpperCase()
+                TypeDeRole typeDeRole = utilisateur.getRole().getLibelle();
+
+                // Créer un nouvel objet Role basé sur l'énumération
+                Role roleUtilisateur = new Role();
+                roleUtilisateur.setLibelle(typeDeRole);
+                utilisateur.setRole(roleUtilisateur);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Rôle invalide");
+            }
+        } else {
+            throw new RuntimeException("Le rôle est requis");
+        }
 
         utilisateur = this.utilisateurRepository.save(utilisateur);
         this.validationService.enregistrer(utilisateur);
@@ -82,5 +99,16 @@ public class UtilisateurService  implements UserDetailsService {
             utilisateur.setMdp(mdpCrypte);
             this.utilisateurRepository.save(utilisateur);
         }
+    }
+
+    public List<Utilisateur> liste() {
+
+        final Iterable<Utilisateur> utilisateurIterable = this.utilisateurRepository.findAll();
+        ArrayList<Utilisateur> utilisateurs = new ArrayList();
+        for (Utilisateur utilisateur: utilisateurIterable) {
+            utilisateurs.add(utilisateur);
+            
+        }
+        return utilisateurs;
     }
 }

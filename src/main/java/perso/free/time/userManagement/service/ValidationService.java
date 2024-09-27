@@ -29,7 +29,7 @@ public class ValidationService {
 
     public void enregistrer(Utilisateur utilisateur) {
 
-        // Chercher directement la validation associée à l'utilisateur par son email
+        // Chercher la validation associée à l'utilisateur par son email
         Optional<Validation> validationOpt = validationRepository.findByUtilisateurEmail(utilisateur.getEmail());
 
         Validation validation;
@@ -37,8 +37,13 @@ public class ValidationService {
             // Si la validation existe, la récupérer
             validation = validationOpt.get();
         } else {
-            // Si aucune validation n'est trouvée, cela signifie que l'utilisateur n'existe pas
-            throw new RuntimeException("Impossible de modifier le mot de passe d'un utilisateur non existant.");
+            // Si aucune validation n'est trouvée, créer une nouvelle validation pour l'utilisateur
+            if (utilisateur.getNom() == null || utilisateur.getEmail() == null) {
+                throw new RuntimeException("Les informations de l'utilisateur sont incomplètes.");
+            }
+
+            validation = new Validation();
+            validation.setUtilisateur(utilisateur);
         }
 
         // Mettre à jour ou initialiser les champs de la validation
@@ -49,12 +54,17 @@ public class ValidationService {
         Instant expiration = creation.plus(10, MINUTES);
         validation.setExpire(expiration);
 
+        // Générer un code de validation à 6 chiffres aléatoire
         Random random = new Random();
         int randomInteger = random.nextInt(999999);
         String code = String.format("%06d", randomInteger);
         validation.setCode(code);
+
+        // Sauvegarder la validation dans le repository
         this.validationRepository.save(validation);
-        this.notificationService.envoyer(validation);
+
+        // Envoyer une notification avec le code de validation
+        //this.notificationService.envoyer(validation);
     }
 
     public Validation lireEnFonctionDuCode(String code) {

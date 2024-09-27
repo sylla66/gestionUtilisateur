@@ -2,10 +2,7 @@ package perso.free.time.userManagement.entities;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Getter
+@Builder
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,7 +28,7 @@ public class Utilisateur implements UserDetails {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
     private boolean actif = false;
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     private Role role;
 
 
